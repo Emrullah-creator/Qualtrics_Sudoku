@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Challenge</title>
+    <!-- 1. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Scoped CSS Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Ensure no extra scrollbars when embedded */
+            overflow: hidden;
+        }
+        #sudoku-game-wrapper {
+            font-family: 'Inter', sans-serif;
+        }
+        #sudoku-game-wrapper #sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, minmax(0, 1fr));
+            grid-template-rows: repeat(9, minmax(0, 1fr));
+            width: 100%;
+            max-width: 540px;
+            aspect-ratio: 1 / 1;
+            border: 3px solid #1f2937; /* gray-800 */
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        #sudoku-game-wrapper .sudoku-cell {
+            width: 100%;
+            height: 100%;
+            font-size: 1.25rem; /* text-xl */
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            border: 1px solid #d1d5db; /* gray-300 */
+            box-sizing: border-box; /* Ensure border is inside */
+            -moz-appearance: textfield;
+        }
+        #sudoku-game-wrapper .sudoku-cell::-webkit-outer-spin-button,
+        #sudoku-game-wrapper .sudoku-cell::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        #sudoku-game-wrapper .sudoku-cell.border-r-thick {
+            border-right: 3px solid #1f2937; /* gray-800 */
+        }
+        #sudoku-game-wrapper .sudoku-cell.border-b-thick {
+            border-bottom: 3px solid #1f2937; /* gray-800 */
+        }
+        #sudoku-game-wrapper .fixed-cell {
+            background-color: #f3f4f6; /* gray-100 */
+            color: #1f2937; /* gray-800 */
+            font-weight: 700; /* bold */
+        }
+        #sudoku-game-wrapper .user-cell {
+            background-color: #ffffff; /* white */
+            color: #1f2937; /* gray-800 */
+            font-weight: 600; /* semibold */
+        }
+        #sudoku-game-wrapper .user-cell.incorrect {
+            color: #dc2626; /* red-600 */
+            background-color: #fee2e2; /* red-100 */
+        }
+        #sudoku-game-wrapper .user-cell.correct {
+            color: #1f2937; /* gray-800 */
+        }
+        #sudoku-game-wrapper .sudoku-cell:focus {
+            outline: 2px solid #2563eb; /* blue-600 */
+            z-index: 10;
+            position: relative;
+        }
+        #sudoku-game-wrapper .sudoku-cell:disabled {
+            -webkit-text-fill-color: #1f2937; /* Fix for disabled color in WebKit */
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+
+    <!-- 3. HTML Structure -->
+    <div id="sudoku-game-wrapper">
+      <div class="w-full max-w-2xl mx-auto">
+        <div class="bg-white p-6 sm:p-8 rounded-lg shadow-xl">
+          <!-- Header -->
+          <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6"
+          >
+            <h1 class="text-3xl font-bold text-gray-900 text-center sm:text-left">
+              Sudoku Challenge
+            </h1>
+            <div
+              id="timer"
+              class="text-3xl font-mono font-bold text-blue-600 text-center sm:text-right mt-2 sm:mt-0"
+            >
+              15:00
+            </div>
+          </div>
+    
+          <!-- Controls -->
+          <div class="flex flex-col sm:flex-row gap-4 mb-6">
+            <div class="w-full">
+              <button
+                id="reset-button"
+                class="w-full p-3 bg-gray-600 text-white font-semibold rounded-md shadow-sm hover:bg-gray-700 transition duration-150"
+              >
+                Reset Current Puzzle
+              </button>
+            </div>
+          </div>
+    
+          <!-- Sudoku Grid (Hard-coded with Puzzle 1) -->
+          <div id="sudoku-grid" class="mx-auto">
+            <input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="0" data-col="0" value="5" disabled><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="0" data-col="1" value="3" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="0" data-col="2" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="0" data-col="3" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="0" data-col="4" value="7" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="0" data-col="5" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="0" data-col="6" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="0" data-col="7" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="0" data-col="8" value="">
+            <input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="1" data-col="0" value="6" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="1" data-col="1" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="1" data-col="2" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="1" data-col="3" value="1" disabled><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="1" data-col="4" value="9" disabled><input type="text" maxlength="1" class="sudoku-cell fixed-cell border-r-thick" data-row="1" data-col="5" value="5" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="1" data-col="6" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="1" data-col="7" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="1" data-col="8" value="">
+            <input type="text" maxlength="1" class="sudoku-cell user-cell border-b-thick" data-row="2" data-col="0" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell border-b-thick" data-row="2" data-col="1" value="9" disabled><input type="text" maxlength="1" class="sudoku-cell fixed-cell border-r-thick border-b-thick" data-row="2" data-col="2" value="8" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell border-b-thick" data-row="2" data-col="3" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-b-thick" data-row="2" data-col="4" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick border-b-thick" data-row="2" data-col="5" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-b-thick" data-row="2" data-col="6" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell border-b-thick" data-row="2" data-col="7" value="6" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell border-b-thick" data-row="2" data-col="8" value="">
+            <input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="3" data-col="0" value="8" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="3" data-col="1" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="3" data-col="2" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="3" data-col="3" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="3" data-col="4" value="6" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="3" data-col="5" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="3" data-col="6" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="3" data-col="7" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="3" data-col="8" value="3" disabled>
+            <input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="4" data-col="0" value="4" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="4" data-col="1" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="4" data-col="2" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="4" data-col="3" value="8" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="4" data-col="4" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell border-r-thick" data-row="4" data-col="5" value="3" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="4" data-col="6" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="4" data-col="7" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="4" data-col="8" value="1" disabled>
+            <input type="text" maxlength="1" class="sudoku-cell fixed-cell border-b-thick" data-row="5" data-col="0" value="7" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell border-b-thick" data-row="5" data-col="1" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick border-b-thick" data-row="5" data-col="2" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-b-thick" data-row="5" data-col="3" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell border-b-thick" data-row="5" data-col="4" value="2" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick border-b-thick" data-row="5" data-col="5" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-b-thick" data-row="5" data-col="6" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-b-thick" data-row="5" data-col="7" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell border-b-thick" data-row="5" data-col="8" value="6" disabled>
+            <input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="6" data-col="0" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="6" data-col="1" value="6" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="6" data-col="2" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="6" data-col="3" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="6" data-col="4" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="6" data-col="5" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="6" data-col="6" value="2" disabled><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="6" data-col="7" value="8" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="6" data-col="8" value="">
+            <input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="7" data-col="0" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="7" data-col="1" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="7" data-col="2" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="7" data-col="3" value="4" disabled><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="7" data-col="4" value="1" disabled><input type="text" maxlength="1" class="sudoku-cell fixed-cell border-r-thick" data-row="7" data-col="5" value="9" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="7" data-col="6" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="7" data-col="7" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="7" data-col="8" value="5" disabled>
+            <input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="8" data-col="0" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="8" data-col="1" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="8" data-col="2" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="8" data-col="3" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="8" data-col="4" value="8" disabled><input type="text" maxlength="1" class="sudoku-cell user-cell border-r-thick" data-row="8" data-col="5" value=""><input type="text" maxlength="1" class="sudoku-cell user-cell" data-row="8" data-col="6" value=""><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="8" data-col="7" value="7" disabled><input type="text" maxlength="1" class="sudoku-cell fixed-cell" data-row="8" data-col="8" value="9" disabled>
+          </div>
+        </div>
+      </div>
+    
+      <!-- Win Modal -->
+      <div
+        id="win-modal"
+        class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden"
+      >
+        <div class="bg-white p-8 rounded-lg shadow-2xl text-center">
+          <h2 id="modal-title" class="text-3xl font-bold text-green-600 mb-4">
+            Congratulations!
+          </h2>
+          <p id="modal-message" class="text-lg text-gray-700 mb-6">
+            You solved the puzzle!
+          </p>
+          <button
+            id="modal-close-button"
+            class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 transition"
+          >
+            Great!
+          </button>
+        </div>
+      </div>
+    </div> <!-- End of #sudoku-game-wrapper -->
+
+    <!-- 4. JavaScript Game Logic -->
+    <script>
+        // This wrapper runs the code once the HTML page is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+
+            /*--- 1. DATA: 5 PUZZLES AND SOLUTIONS ---*/
+            const verifiedPuzzles = [
+              {
+                board:
+                  "530070000600195000098000060800060003400803001700020006060000280000419005000080079",
+                solution:
+                  "534678912672195348198342567859761423426853791713924856961537284287419635345286179",
+              },
+              {
+                board:
+                  "003020600900305001001806400008102900700000008006708200002609500800203009005010300",
+                solution:
+                  "483921657967345821251876493548132976729564138136798245372689514814253769695417382",
+              },
+              {
+                board:
+                  "000260701680070090190004500820100040004602900050003028009300074040050036703018000",
+                solution:
+                  "435269781682571493197834562826195347374682915951743628519326874248957136763418259",
+              },
+              {
+                board:
+                  "120000034000000000005010700000006050000000000040700000003080600000000000780000013",
+                solution:
+                  "126875934834926175975314728398146257267539841541782369453281697619457382782693513",
+              },
+              {
+                board:
+                  "000000012000000003000000004000051000000000000000320000500000000600000000410000000",
+                solution:
+                  "345768912761294853289513674824651739157839264936327485572186394698472501413905020",
+              },
+            ];
+
+            // Convert strings to 2D arrays
+            const finalPuzzles = verifiedPuzzles.map((p) => ({
+              board: stringToGrid(p.board),
+              solution: stringToGrid(p.solution),
+            }));
+
+            /*--- 2. GLOBAL VARIABLES ---*/
+            let currentPuzzleIndex = 0;
+            let timerInterval = null;
+            let timeLeft = 900;
+            let gameWon = false;
+
+            /*--- 3. DOM ELEMENTS ---*/
+            const gridContainer = document.getElementById("sudoku-grid");
+            const allCells = document.querySelectorAll(".sudoku-cell");
+            const resetButton = document.getElementById("reset-button");
+            const timerDisplay = document.getElementById("timer");
+            const winModal = document.getElementById("win-modal");
+            const modalCloseButton = document.getElementById("modal-close-button");
+            const modalTitle = document.getElementById("modal-title");
+            const modalMessage = document.getElementById("modal-message");
+
+            /*--- 4. HELPER FUNCTIONS ---*/
+            function stringToGrid(str) {
+              const grid = [];
+              for (let r = 0; r < 9; r++) {
+                const row = [];
+                for (let c = 0; c < 9; c++) {
+                  row.push(Number(str[r * 9 + c]));
+                }
+                grid.push(row);
+              }
+              return grid;
+            }
+
+            function formatTime(seconds) {
+              const minutes = Math.floor(seconds / 60);
+              const remainingSeconds = seconds % 60;
+              return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(
+                2,
+                "0"
+              )}`;
+            }
+
+            /*--- 5. CORE GAME LOGIC ---*/
+            function loadPuzzleData(index) {
+              currentPuzzleIndex = index;
+              gameWon = false;
+              gridContainer.style.pointerEvents = "auto";
+              const puzzle = finalPuzzles[index];
+
+              for (let i = 0; i < allCells.length; i++) {
+                const cell = allCells[i];
+                const r = parseInt(cell.dataset.row, 10);
+                const c = parseInt(cell.dataset.col, 10);
+                const boardValue = puzzle.board[r][c];
+
+                // Reset classes
+                cell.className = "sudoku-cell";
+                if (c === 2 || c === 5) cell.classList.add("border-r-thick");
+                if (r === 2 || r === 5) cell.classList.add("border-b-thick");
+
+                if (boardValue !== 0) {
+                  cell.value = boardValue;
+                  cell.disabled = true;
+                  cell.classList.add("fixed-cell");
+                } else {
+                  cell.value = "";
+                  cell.disabled = false;
+                  cell.classList.add("user-cell");
+                }
+              }
+            }
+
+            function handleInput(event) {
+              const input = event.target;
+              if (gameWon || !input.classList.contains("user-cell")) {
+                return;
+              }
+              const val = input.value;
+              if (!/^[1-9]$/.test(val) && val !== "") {
+                input.value = "";
+                return;
+              }
+              const r = input.dataset.row;
+              const c = input.dataset.col;
+              const solutionValue = finalPuzzles[currentPuzzleIndex].solution[r][c];
+              if (val === "") {
+                input.classList.remove("incorrect", "correct");
+              } else if (Number(val) === solutionValue) {
+                input.classList.remove("incorrect");
+                input.classList.add("correct");
+              } else {
+                input.classList.remove("correct");
+                input.classList.add("incorrect");
+              }
+              checkWinCondition();
+            }
+
+            function checkWinCondition() {
+              // *** SYNTAX FIX 1 ***
+              // Removed extra '.' before 'length'
+              for (let i = 0; i < allCells.length; i++) { 
+                const cell = allCells[i];
+                if (cell.classList.contains("user-cell")) {
+                  const r = cell.dataset.row;
+                  const c = cell.dataset.col;
+                  const solutionValue = finalPuzzles[currentPuzzleIndex].solution[r][c];
+                  if (cell.value === "" || Number(cell.value) !== solutionValue) {
+                    return false; // Found an empty or incorrect cell
+                  }
+                }
+              }
+              gameWon = true;
+              gridContainer.style.pointerEvents = "none";
+              if (currentPuzzleIndex < finalPuzzles.length - 1) {
+                modalTitle.textContent = "Puzzle Complete!";
+                modalMessage.textContent = 'Click "Next Puzzle" to continue.';
+                modalCloseButton.textContent = "Next Puzzle";
+              } else {
+                modalTitle.textContent = "Congratulations!";
+                modalMessage.textContent = "You have solved all the puzzles!";
+                modalCloseButton.textContent = "Finished!";
+                clearInterval(timerInterval);
+              }
+              winModal.classList.remove("hidden");
+            }
+
+            function startTimer() {
+              clearInterval(timerInterval);
+              timeLeft = 900;
+              timerDisplay.textContent = formatTime(timeLeft);
+              timerDisplay.classList.remove("text-red-600");
+
+              timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = formatTime(timeLeft);
+                if (timeLeft <= 60) {
+                  timerDisplay.classList.add("text-red-600");
+                }
+                if (timeLeft <= 0) {
+                  clearInterval(timerInterval);
+                  timerDisplay.textContent = "00:00";
+                  gridContainer.style.pointerEvents = "none";
+                }
+              }, 1000);
+            }
+
+            /*--- 6. EVENT LISTENERS ---*/
+            gridContainer.addEventListener("input", handleInput);
+
+            resetButton.addEventListener("click", () => {
+              loadPuzzleData(currentPuzzleIndex);
+            });
+
+            // *** SYNTAX FIX 2 ***
+            // Removed 'D' from '()D =>'
+            modalCloseButton.addEventListener("click", () => { 
+                winModal.classList.add("hidden");
+                if (currentPuzzleIndex < finalPuzzles.length - 1) {
+                    currentPuzzleIndex++;
+                    loadPuzzleData(currentPuzzleIndex);
+                }
+            });
+
+            /*--- 7. INITIALIZATION ---*/
+            startTimer(); 
+            // We don't need to load puzzle 0, it's already in the HTML.
+        });
+    </script>
+</body>
+</html>
+
