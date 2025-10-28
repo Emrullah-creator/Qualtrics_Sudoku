@@ -96,7 +96,7 @@
               id="timer"
               class="text-3xl font-mono font-bold text-blue-600 text-center sm:text-right mt-2 sm:mt-0"
             >
-              15:00
+              5:00
             </div>
           </div>
     
@@ -197,7 +197,7 @@
             /*--- 2. GLOBAL VARIABLES ---*/
             let currentPuzzleIndex = 0;
             let timerInterval = null;
-            let timeLeft = 900;
+            let timeLeft = 300;
             let gameWon = false;
 
             /*--- 3. DOM ELEMENTS ---*/
@@ -318,7 +318,7 @@
 
             function startTimer() {
               clearInterval(timerInterval);
-              timeLeft = 900;
+              timeLeft = 300;
               timerDisplay.textContent = formatTime(timeLeft);
               timerDisplay.classList.remove("text-red-600");
 
