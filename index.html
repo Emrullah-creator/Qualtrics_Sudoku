@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sudoku Bulmacasi</title>
+    <title>Sudoku</title>
     <!-- 1. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -82,7 +82,7 @@
 <body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
 
     <!-- 3. HTML Structure -->
-    <div id="sudoku-game-wrapper">
+    <div id="sudoku-game-wrapper" class="w-full h-full overflow-y-auto">
       <div class="w-full max-w-2xl mx-auto">
         <div class="bg-white p-6 sm:p-8 rounded-lg shadow-xl">
           <!-- Header -->
@@ -90,7 +90,7 @@
             class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6"
           >
             <h1 class="text-3xl font-bold text-gray-900 text-center sm:text-left">
-              Sudoku Bulmacasi
+              Sudoku
             </h1>
             <div
               id="timer"
@@ -110,6 +110,16 @@
                 Sıfırla
               </button>
             </div>
+          </div>
+
+          <!-- Instructions Box (Turkish) -->
+          <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6 text-sm text-gray-700">
+            <h2 class="font-bold text-blue-800 mb-2 text-lg">Nasıl Oynanır?</h2>
+            <ul class="list-disc list-inside space-y-1">
+                <li>Her satırda 1'den 9'a kadar rakamlar sadece bir kez kullanılmalıdır.</li>
+                <li>Her sütunda 1'den 9'a kadar rakamlar sadece bir kez kullanılmalıdır.</li>
+                <li>Her 3x3'lük kalın çizgili alanda 1'den 9'a kadar rakamlar sadece bir kez kullanılmalıdır.</li>
+            </ul>
           </div>
     
           <!-- Sudoku Grid (Hard-coded with Puzzle 1) -->
@@ -288,8 +298,6 @@
             }
 
             function checkWinCondition() {
-              // *** SYNTAX FIX 1 ***
-              // Removed extra '.' before 'length'
               for (let i = 0; i < allCells.length; i++) { 
                 const cell = allCells[i];
                 if (cell.classList.contains("user-cell")) {
@@ -343,8 +351,6 @@
               loadPuzzleData(currentPuzzleIndex);
             });
 
-            // *** SYNTAX FIX 2 ***
-            // Removed 'D' from '()D =>'
             modalCloseButton.addEventListener("click", () => { 
                 winModal.classList.add("hidden");
                 if (currentPuzzleIndex < finalPuzzles.length - 1) {
@@ -360,4 +366,3 @@
     </script>
 </body>
 </html>
-
